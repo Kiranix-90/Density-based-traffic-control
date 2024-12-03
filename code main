@@ -1,0 +1,158 @@
+// Pin definitions for traffic lights
+#define R1 13
+#define Y1 12
+#define G1 11
+#define R2 10
+#define Y2 9
+#define G2 8
+#define R3 7
+#define Y3 6
+#define G3 5
+#define R4 4
+#define Y4 3
+#define G4 2
+
+// Pin definitions for IR sensors
+#define IR1 A0
+#define IR2 A1
+#define IR3 A2
+#define IR4 A3
+#define IR5 A4
+#define IR6 A5
+#define IR7 A6
+#define IR8 A7
+
+// 7-segment display array (common anode)
+const int digit[10] = {0b1000000, 0b1111001, 0b0100100, 0b0110000, 0b0011001, 
+                      0b0010010, 0b0000010, 0b1111000, 0b0000000, 0b0010000};
+
+// Variables for digit control
+int digit1, digit2;
+
+// Display functions for each road's 7-segment display
+void displayRoad1(int num) {
+  for (int i = 22; i < 29; i++) {
+    digitalWrite(i, bitRead(digit[num], i - 22));
+  }
+}
+
+void displayRoad2(int num) {
+  for (int i = 31; i < 38; i++) {
+    digitalWrite(i, bitRead(digit[num], i - 31));
+  }
+}
+
+void displayRoad3(int num) {
+  for (int i = 40; i < 47; i++) {
+    digitalWrite(i, bitRead(digit[num], i - 40));
+  }
+}
+
+void displayRoad4(int num) {
+  for (int i = 49; i < 54; i++) {
+    digitalWrite(i, bitRead(digit[num], i - 49));
+  }
+  digitalWrite(A8, bitRead(digit[num], 5));
+  digitalWrite(A9, bitRead(digit[num], 6));
+}
+
+// Function to handle countdown display for each road
+void countDown(int seconds, void (*displayFunc)(int), int digit1Pin, int digit2Pin) {
+  for (int i = seconds; i >= 0; i--) {
+    digit2 = i / 10;
+    digit1 = i % 10;
+    
+    for (int k = 0; k < 35; k++) {
+      digitalWrite(digit1Pin, HIGH);
+      digitalWrite(digit2Pin, LOW);
+      displayFunc(digit2);
+      delay(10);
+      
+      digitalWrite(digit2Pin, HIGH);
+      digitalWrite(digit1Pin, LOW);
+      displayFunc(digit1);
+      delay(15);
+    }
+  }
+}
+
+// Function to control a single traffic light sequence
+void controlTraffic(int redPin, int yellowPin, int greenPin, 
+                   int ir1, int ir2, 
+                   void (*displayFunc)(int),
+                   int digit1Pin, int digit2Pin) {
+                     
+  // Turn all lights red except current road
+  digitalWrite(R1, HIGH); digitalWrite(Y1, LOW); digitalWrite(G1, LOW);
+  digitalWrite(R2, HIGH); digitalWrite(Y2, LOW); digitalWrite(G2, LOW);
+  digitalWrite(R3, HIGH); digitalWrite(Y3, LOW); digitalWrite(G3, LOW);
+  digitalWrite(R4, HIGH); digitalWrite(Y4, LOW); digitalWrite(G4, LOW);
+  
+  // Read IR sensors
+  int sensor1 = analogRead(ir1);
+  int sensor2 = analogRead(ir2);
+  
+  // Determine green light duration
+  int greenTime = 10; // Default
+  if (sensor1 < 60 && sensor2 < 60) {
+    greenTime = 20; // Both sensors detected
+  }
+  else if (sensor1 < 60 || sensor2 < 60) {
+    greenTime = 15; // One sensor detected
+  }
+  
+  // Green light phase
+  digitalWrite(redPin, LOW);
+  digitalWrite(greenPin, HIGH);
+  countDown(greenTime, displayFunc, digit1Pin, digit2Pin);
+  
+  // Yellow light phase
+  digitalWrite(greenPin, LOW);
+  digitalWrite(yellowPin, HIGH);
+  countDown(3, displayFunc, digit1Pin, digit2Pin);
+  
+  // Return to red
+  digitalWrite(yellowPin, LOW);
+  digitalWrite(redPin, HIGH);
+}
+
+void setup() {
+  // Initialize traffic light pins
+  pinMode(R1, OUTPUT); pinMode(Y1, OUTPUT); pinMode(G1, OUTPUT);
+  pinMode(R2, OUTPUT); pinMode(Y2, OUTPUT); pinMode(G2, OUTPUT);
+  pinMode(R3, OUTPUT); pinMode(Y3, OUTPUT); pinMode(G3, OUTPUT);
+  pinMode(R4, OUTPUT); pinMode(Y4, OUTPUT); pinMode(G4, OUTPUT);
+  
+  // Initialize 7-segment display pins
+  for (int i = 22; i < 29; i++) pinMode(i, OUTPUT);
+  for (int i = 31; i < 38; i++) pinMode(i, OUTPUT);
+  for (int i = 40; i < 47; i++) pinMode(i, OUTPUT);
+  for (int i = 49; i < 54; i++) pinMode(i, OUTPUT);
+  
+  // Initialize digit control pins
+  pinMode(29, OUTPUT); pinMode(30, OUTPUT);  // Road 1
+  pinMode(38, OUTPUT); pinMode(39, OUTPUT);  // Road 2
+  pinMode(47, OUTPUT); pinMode(48, OUTPUT);  // Road 3
+  pinMode(A8, OUTPUT); pinMode(A9, OUTPUT);  // Road 4 additional segments
+  pinMode(A10, OUTPUT); pinMode(A11, OUTPUT); // Road 4 digit control
+  
+  // Initialize IR sensor pins
+  pinMode(IR1, INPUT); pinMode(IR2, INPUT);
+  pinMode(IR3, INPUT); pinMode(IR4, INPUT);
+  pinMode(IR5, INPUT); pinMode(IR6, INPUT);
+  pinMode(IR7, INPUT); pinMode(IR8, INPUT);
+}
+
+void loop() {
+  // Road 1 sequence
+  controlTraffic(R1, Y1, G1, IR1, IR2, displayRoad1, 29, 30);
+  
+  // Road 2 sequence
+  controlTraffic(R2, Y2, G2, IR3, IR4, displayRoad2, 38, 39);
+  
+  // Road 3 sequence
+  controlTraffic(R3, Y3, G3, IR5, IR6, displayRoad3, 47, 48);
+  
+  // Road 4 sequence
+  controlTraffic(R4, Y4, G4, IR7, IR8, displayRoad4, A10, A11);
+}
