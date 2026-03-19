@@ -1,7 +1,7 @@
 # 🚦 Real-Time Traffic Light Controller Based on Density
 
 <p align="center">
-  <img src="traffic-system.png" alt="Traffic Light Controller" width="500"/>
+  <img src="https://raw.githubusercontent.com/Kiranix-90/Density-based-traffic-control/main/traffic-system.png" width="500"/>
 </p>
 
 ---
@@ -49,11 +49,11 @@ By optimizing green light durations, the system aims to:
 ## ⚙️ System Working Principle
 
 ### 🔹 Initialization
-- Configure LEDs as outputs  
+- Configure LED pins as outputs  
 - Configure IR sensors (A0–A7) as inputs  
 
 ### 🔹 Normal Operation
-- System follows default traffic sequence  
+- System runs with default traffic sequence  
 - Each lane gets fixed green time  
 
 ### 🔹 Dynamic Adjustment
@@ -67,7 +67,7 @@ This ensures:
 - Reduced waiting time  
 
 ### 🔹 Cycle Completion
-- System switches to next lane after timer ends  
+- After time expires, system switches to next lane  
 - Process repeats continuously  
 
 ---
