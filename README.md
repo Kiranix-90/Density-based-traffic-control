@@ -1,7 +1,7 @@
 # 🚦 Real-Time Traffic Light Controller Based on Density
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Kiranix-90/Density-based-traffic-control/main/traffic-system.png" width="500"/>
+  <img src="./traffic-system.png" alt="Traffic Light Controller" width="500"/>
 </p>
 
 ---
@@ -85,7 +85,7 @@ This ensures:
 
 ```bash
 Density-based-traffic-control/
+│── README.md
 │── traffic-system.png
 │── code/
 │   ├── traffic_controller.ino
-│── README.md
